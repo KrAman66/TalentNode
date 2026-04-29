@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  savedJobs      SavedJob[]
+  searchHistory  SearchHistory[]
+
+  @@map("users")
+}
+
+model SavedJob {
+  id          String   @id @default(cuid())
+  userId      String
+  jobData     Json
+  source      String   // "linkedin" | "naukri"
+  externalId  String   // original job ID from source
+  title       String
+  company     String
+  location    String?
+  savedAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, externalId, source])
+  @@map("saved_jobs")
+}
+
+model SearchHistory {
+  id        String   @id @default(cuid())
+  userId    String?
+  query     String
+  filters   Json?
+  results   Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("search_history")
+}

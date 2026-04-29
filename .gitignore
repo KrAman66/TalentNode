@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+**/dist/
+**/build/
+
+# Env files (keep secrets local)
+.env
+**/.env
+
+# Keep template files
+!backend/.env.template
+!frontend/.env.template
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project-specific (dev-only files)
+PLAN.md
+start-alpha.bat
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Prisma - keep schema, ignore generated client
+**/prisma/generated/
+**/@prisma/client/
+
+# MCP servers (keep source, ignore build)
+mcp-servers/**/node_modules/
+mcp-servers/**/dist/
+!mcp-servers/**/src/
+
+# Render / deployment
+.render/

@@ -1,0 +1,21 @@
+{
+  "name": "linkedin-mcp",
+  "version": "1.0.0",
+  "description": "LinkedIn MCP server for TalentNode",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "typescript": "^5.9.3"
+  }
+}
