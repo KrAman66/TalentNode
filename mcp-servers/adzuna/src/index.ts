@@ -1,7 +1,11 @@
 import dotenv from "dotenv";
 import path from "path";
+import { fileURLToPath } from "url";
 import express from "express";
 import type { Request, Response } from "express";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
@@ -51,13 +55,17 @@ app.post("/tools/call", async (req: Request, res: Response) => {
         title: j.title,
         company: j.company?.display_name ?? "Unknown",
         location: j.location?.display_name ?? "India",
-        description: (j.description ?? "").replace(/<[^>]*>/g, "").slice(0, 300),
+        description: (j.description ?? "")
+          .replace(/<[^>]*>/g, "")
+          .slice(0, 300),
         url: j.redirect_url,
         postedAt: j.created?.split("T")[0] ?? "",
         source: "adzuna",
       }));
 
-      res.json({ content: [{ type: "text", text: JSON.stringify(formatted, null, 2) }] });
+      res.json({
+        content: [{ type: "text", text: JSON.stringify(formatted, null, 2) }],
+      });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
