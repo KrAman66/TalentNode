@@ -1,15 +1,10 @@
-/// <reference types="node" />
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
+import express from "express";
+import type { Request, Response } from "express";
 
-const server = new Server(
-  { name: "remotive-mcp", version: "1.0.0" },
-  { capabilities: { tools: {} } }
-);
+const app = express();
+app.use(express.json());
+
+const REMOTIVE_API = "https://remotive.io/api/remote-jobs";
 
 interface RemotiveJob {
   id: string;
@@ -23,8 +18,7 @@ interface RemotiveJob {
 }
 
 async function searchRemotive(query: string): Promise<RemotiveJob[]> {
-  const url = "https://remotive.io/api/remote-jobs";
-  const res = await fetch(url);
+  const res = await fetch(REMOTIVE_API);
   if (!res.ok) throw new Error(`Remotive API error: ${res.status}`);
   const data = await res.json();
   const jobs: RemotiveJob[] = data.jobs ?? [];
@@ -36,60 +30,35 @@ async function searchRemotive(query: string): Promise<RemotiveJob[]> {
   });
 }
 
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [
-    {
-      name: "search_remotive_jobs",
-      description: "Search Remotive for remote job postings. Returns job title, company, location, description, and apply URL.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          query: {
-            type: "string",
-            description: "Job title, skill, or keyword (e.g. 'react developer', 'python')",
-          },
-        },
-        required: ["query"],
-      },
-    },
-  ],
-}));
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
+app.post("/tools/call", async (req: Request, res: Response) => {
+  const { name, arguments: args } = req.body;
 
   if (name === "search_remotive_jobs") {
     const query = (args?.query as string) ?? "";
-    const jobs = await searchRemotive(query);
+    try {
+      const jobs = await searchRemotive(query);
+      const formatted = jobs.map((j) => ({
+        id: `remotive-${j.id}`,
+        title: j.title,
+        company: j.company_name,
+        location: j.candidate_required_location,
+        description: j.description?.replace(/<[^>]*>/g, "").slice(0, 300) ?? "",
+        url: j.url,
+        postedAt: j.publication_date?.split("T")[0] ?? "",
+        source: "remotive",
+      }));
 
-    const formatted = jobs.map((j) => ({
-      id: `remotive-${j.id}`,
-      title: j.title,
-      company: j.company_name,
-      location: j.candidate_required_location,
-      description: j.description?.replace(/<[^>]*>/g, "").slice(0, 300) ?? "",
-      url: j.url,
-      postedAt: j.publication_date?.split("T")[0] ?? "",
-      source: "remotive",
-    }));
-
-    return {
-      content: [{ type: "text", text: JSON.stringify(formatted, null, 2) }],
-    };
+      res.json({ content: [{ type: "text", text: JSON.stringify(formatted, null, 2) }] });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+    return;
   }
 
-  throw new Error(`Unknown tool: ${name}`);
+  res.status(400).json({ error: `Unknown tool: ${name}` });
 });
 
-async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-}
-
-process.on("uncaughtException", (err) => {
-  console.error("[Remotive MCP ERROR] Uncaught exception:", err);
-});
-
-main().catch((err) => {
-  console.error("[Remotive MCP ERROR] Startup failed:", err);
+const PORT = process.env.PORT ?? 3002;
+app.listen(PORT, () => {
+  console.log(`Remotive HTTP MCP running on port ${PORT}`);
 });
