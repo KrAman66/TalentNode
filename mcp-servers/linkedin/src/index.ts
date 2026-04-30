@@ -27,6 +27,7 @@ function searchJobs(query: string, location?: string) {
       company: "Google",
       location: location ?? "Bangalore",
       description: "Build scalable systems with a world-class team. Requires 5+ years experience with distributed systems.",
+      source: "linkedin",
     },
     {
       id: "job-2",
@@ -34,6 +35,7 @@ function searchJobs(query: string, location?: string) {
       company: "Swiggy",
       location: location ?? "Bangalore",
       description: "Work on consumer-facing products serving millions. React, Node.js, TypeScript.",
+      source: "linkedin",
     },
     {
       id: "job-3",
@@ -41,6 +43,7 @@ function searchJobs(query: string, location?: string) {
       company: "Flipkart",
       location: location ?? "Bangalore",
       description: "Design and scale backend services for e-commerce. Java, Spring Boot, microservices.",
+      source: "linkedin",
     },
   ];
 
