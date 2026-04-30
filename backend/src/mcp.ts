@@ -1,6 +1,15 @@
 import { McpClient } from './mcp-client';
+import dotenv from 'dotenv';
+import path from 'path';
 
-export const mcpClient = new McpClient(
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+export const remotiveClient = new McpClient(
   'node',
-  ['../mcp-servers/linkedin/dist/index.js']
+  ['../mcp-servers/remotive/dist/index.js']
+);
+
+export const adzunaClient = new McpClient(
+  'node',
+  ['../mcp-servers/adzuna/dist/index.js']
 );
