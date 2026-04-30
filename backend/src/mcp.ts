@@ -1,15 +1,31 @@
-import { McpClient } from './mcp-client';
-import dotenv from 'dotenv';
-import path from 'path';
+import { PrismaClient } from "@prisma/client";
 
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+export const remotiveClient = {
+  callTool: async (name: string, args: Record<string, unknown>) => {
+    const API_URL =
+      process.env.REMOTIVE_URL ??
+      "https://talentnode-mcp-server-remotive.onrender.com";
+    const res = await fetch(`${API_URL}/tools/call`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, arguments: args }),
+    });
+    if (!res.ok) throw new Error(`Remotive HTTP error: ${res.status}`);
+    return res.json();
+  },
+};
 
-export const remotiveClient = new McpClient(
-  'node',
-  ['../mcp-servers/remotive/dist/index.js']
-);
-
-export const adzunaClient = new McpClient(
-  'node',
-  ['../mcp-servers/adzuna/dist/index.js']
-);
+export const adzunaClient = {
+  callTool: async (name: string, args: Record<string, unknown>) => {
+    const API_URL =
+      process.env.ADZUNA_URL ??
+      "https://talentnode-mcp-server-adzuna.onrender.com";
+    const res = await fetch(`${API_URL}/tools/call`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, arguments: args }),
+    });
+    if (!res.ok) throw new Error(`Adzuna HTTP error: ${res.status}`);
+    return res.json();
+  },
+};
