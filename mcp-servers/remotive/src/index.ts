@@ -18,16 +18,44 @@ interface RemotiveJob {
 }
 
 async function searchRemotive(query: string): Promise<RemotiveJob[]> {
-  const res = await fetch(REMOTIVE_API);
-  if (!res.ok) throw new Error(`Remotive API error: ${res.status}`);
-  const data = await res.json();
-  const jobs: RemotiveJob[] = data.jobs ?? [];
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000); // 10s
 
-  const q = query.toLowerCase();
-  return jobs.filter((j) => {
-    const haystack = `${j.title} ${j.company_name} ${j.description} ${j.job_type}`.toLowerCase();
-    return q.split(/\s+/).some((word) => word.length > 2 && haystack.includes(word));
-  });
+  try {
+    console.log("Fetching Remotive jobs...");
+
+    const res = await fetch(REMOTIVE_API, {
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      throw new Error(`Remotive API error: ${res.status}`);
+    }
+
+    const data = await res.json();
+    const jobs: RemotiveJob[] = data.jobs ?? [];
+
+    console.log("Total jobs fetched:", jobs.length);
+
+    const q = query.toLowerCase();
+
+    const filtered = jobs.filter((j) => {
+      const haystack =
+        `${j.title} ${j.company_name} ${j.description} ${j.job_type}`.toLowerCase();
+      return q
+        .split(/\s+/)
+        .some((word) => word.length > 2 && haystack.includes(word));
+    });
+
+    console.log("Filtered jobs:", filtered.length);
+
+    return filtered.slice(0, 20); // limit
+  } catch (err) {
+    console.error("Remotive fetch failed:", err);
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 app.post("/tools/call", async (req: Request, res: Response) => {
@@ -48,7 +76,9 @@ app.post("/tools/call", async (req: Request, res: Response) => {
         source: "remotive",
       }));
 
-      res.json({ content: [{ type: "text", text: JSON.stringify(formatted, null, 2) }] });
+      res.json({
+        content: [{ type: "text", text: JSON.stringify(formatted, null, 2) }],
+      });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

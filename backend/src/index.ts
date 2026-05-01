@@ -8,6 +8,7 @@ import authRouter from "./routes/auth";
 import jobInteractionsRouter from "./routes/job-interactions";
 import { optionalAuth } from "./middleware/optionalAuth";
 import { authMiddleware } from "./middleware/auth";
+import { requestIdMiddleware } from "./middleware/requestId";
 import { remotiveClient, adzunaClient } from "./mcp";
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
@@ -17,6 +18,7 @@ const PORT = process.env.PORT;
 
 app.use(cors());
 app.use(express.json());
+app.use(requestIdMiddleware);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", ts: new Date().toISOString() });
