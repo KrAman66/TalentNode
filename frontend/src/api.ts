@@ -1,5 +1,5 @@
 export interface ChatMessage {
-  role: 'system' | 'user' | 'assitant' | 'tool';
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
 }
 
@@ -27,23 +27,23 @@ export interface StreamCallbacks {
 }
 
 function getToken(): string | null {
-  return localStorage.getItem('talentnode_token');
+  return localStorage.getItem("talentnode_token");
 }
 
 export async function sendMessage(
   messages: ChatMessage[],
-  callbacks: StreamCallbacks
+  callbacks: StreamCallbacks,
 ): Promise<void> {
-  const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
   const token = getToken();
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(`${API_URL}/api/chat`, {
-    method: 'POST',
+    method: "POST",
     headers,
     body: JSON.stringify({ messages }),
   });
@@ -55,25 +55,25 @@ export async function sendMessage(
   }
 
   if (!res.body) {
-    callbacks.onError('No response body');
+    callbacks.onError("No response body");
     return;
   }
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
-  let buffer = '';
+  let buffer = "";
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
 
     buffer += decoder.decode(value, { stream: true });
-    const parts = buffer.split('\n\n');
-    buffer = parts.pop() ?? '';
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() ?? "";
 
     for (const part of parts) {
-      for (const line of part.split('\n')) {
-        if (!line.startsWith('data: ')) continue;
+      for (const line of part.split("\n")) {
+        if (!line.startsWith("data: ")) continue;
         const data = line.slice(6).trim();
         if (!data) continue;
 
@@ -99,20 +99,20 @@ export async function sendMessage(
 }
 
 export async function saveJob(job: Job): Promise<void> {
-  const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
   const token = getToken();
 
-  if (!token) throw new Error('Please log in to save jobs');
+  if (!token) throw new Error("Please log in to save jobs");
 
   const res = await fetch(`${API_URL}/api/saved-jobs`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       jobData: job,
-      source: job.source ?? 'adzuna',
+      source: job.source ?? "adzuna",
       externalId: job.id,
       title: job.title,
       company: job.company,
@@ -126,17 +126,21 @@ export async function saveJob(job: Job): Promise<void> {
   }
 }
 
-export async function toggleJobInteraction(jobId: string, source: string, type: string): Promise<boolean> {
-  const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+export async function toggleJobInteraction(
+  jobId: string,
+  source: string,
+  type: string,
+): Promise<boolean> {
+  const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
   const token = getToken();
 
-  if (!token) throw new Error('Please log in to interact with jobs');
+  if (!token) throw new Error("Please log in to interact with jobs");
 
   const res = await fetch(`${API_URL}/api/job-interactions`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ jobId, source, type }),
   });
@@ -150,12 +154,15 @@ export async function toggleJobInteraction(jobId: string, source: string, type: 
   return !data.removed;
 }
 
-export async function login(email: string, password: string): Promise<{ token: string; user: any }> {
-  const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+export async function login(
+  email: string,
+  password: string,
+): Promise<{ token: string; user: any }> {
+  const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
   const res = await fetch(`${API_URL}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
 
@@ -165,17 +172,21 @@ export async function login(email: string, password: string): Promise<{ token: s
   }
 
   const data = await res.json();
-  localStorage.setItem('talentnode_token', data.token);
-  localStorage.setItem('talentnode_user', JSON.stringify(data.user));
+  localStorage.setItem("talentnode_token", data.token);
+  localStorage.setItem("talentnode_user", JSON.stringify(data.user));
   return data;
 }
 
-export async function register(email: string, password: string, name?: string): Promise<{ token: string; user: any }> {
-  const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+export async function register(
+  email: string,
+  password: string,
+  name?: string,
+): Promise<{ token: string; user: any }> {
+  const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
   const res = await fetch(`${API_URL}/api/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password, name }),
   });
 
@@ -185,17 +196,17 @@ export async function register(email: string, password: string, name?: string): 
   }
 
   const data = await res.json();
-  localStorage.setItem('talentnode_token', data.token);
-  localStorage.setItem('talentnode_user', JSON.stringify(data.user));
+  localStorage.setItem("talentnode_token", data.token);
+  localStorage.setItem("talentnode_user", JSON.stringify(data.user));
   return data;
 }
 
 export function logout() {
-  localStorage.removeItem('talentnode_token');
-  localStorage.removeItem('talentnode_user');
+  localStorage.removeItem("talentnode_token");
+  localStorage.removeItem("talentnode_user");
 }
 
 export function getCurrentUser(): any | null {
-  const user = localStorage.getItem('talentnode_user');
+  const user = localStorage.getItem("talentnode_user");
   return user ? JSON.parse(user) : null;
 }

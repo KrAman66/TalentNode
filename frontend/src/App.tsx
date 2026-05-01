@@ -1,5 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { sendMessage, type ChatMessage, type Job, getCurrentUser, logout, saveJob } from "./api";
+import {
+  sendMessage,
+  type ChatMessage,
+  type Job,
+  getCurrentUser,
+  logout,
+  saveJob,
+} from "./api";
 import ChatInput from "./components/ChatInput";
 import MessageList from "./components/MessageList";
 import Login from "./components/Login";
@@ -11,7 +18,7 @@ function App() {
   const [user, setUser] = useState(() => getCurrentUser());
   const [messages, setMessages] = useState<MessageWithJobs[]>([
     {
-      role: "assitant",
+      role: "assistant",
       content: "Hi! I'm TalentNode. Ask me to find jobs for you.",
     },
   ]);
@@ -32,7 +39,7 @@ function App() {
     setUser(null);
     setMessages([
       {
-        role: "assitant",
+        role: "assistant",
         content: "Hi! I'm TalentNode. Ask me to find jobs for you.",
       },
     ]);
@@ -41,17 +48,19 @@ function App() {
   const handleToggleSave = async (job: Job) => {
     try {
       await saveJob(job);
-      setMessages(prev => prev.map(msg => {
-        if (msg.jobs) {
-          const updatedJobs = msg.jobs.map(j =>
-            j.id === job.id ? { ...j, saved: true } : j
-          );
-          return { ...msg, jobs: updatedJobs };
-        }
-        return msg;
-      }));
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.jobs) {
+            const updatedJobs = msg.jobs.map((j) =>
+              j.id === job.id ? { ...j, saved: true } : j,
+            );
+            return { ...msg, jobs: updatedJobs };
+          }
+          return msg;
+        }),
+      );
     } catch (err: any) {
-      setError(err.message ?? 'Failed to save job');
+      setError(err.message ?? "Failed to save job");
     }
   };
 
@@ -62,7 +71,11 @@ function App() {
     setLoading(true);
     setError(null);
 
-    const assistantMsg: MessageWithJobs = { role: "assitant", content: "", streaming: true };
+    const assistantMsg: MessageWithJobs = {
+      role: "assistant",
+      content: "",
+      streaming: true,
+    };
     setMessages([...newMessages, assistantMsg]);
 
     try {
@@ -72,7 +85,7 @@ function App() {
             const updated = [...prev];
             const idx = updated.length - 1;
             const last = updated[idx];
-            if (last && last.role === "assitant" && last.streaming) {
+            if (last && last.role === "assistant" && last.streaming) {
               updated[idx] = { ...last, content: last.content + token };
               return updated;
             }
@@ -84,8 +97,12 @@ function App() {
             const updated = [...prev];
             const idx = updated.length - 1;
             const last = updated[idx];
-            if (last && last.role === "assitant") {
-              updated[idx] = { ...last, streaming: false, jobs: jobs ?? undefined };
+            if (last && last.role === "assistant") {
+              updated[idx] = {
+                ...last,
+                streaming: false,
+                jobs: jobs ?? undefined,
+              };
               return updated;
             }
             return prev;
@@ -99,8 +116,12 @@ function App() {
             const updated = [...prev];
             const idx = updated.length - 1;
             const last = updated[idx];
-            if (last && last.role === "assitant") {
-              updated[idx] = { ...last, content: `(error: ${err})`, streaming: false };
+            if (last && last.role === "assistant") {
+              updated[idx] = {
+                ...last,
+                content: `(error: ${err})`,
+                streaming: false,
+              };
               return updated;
             }
             return prev;
@@ -128,12 +149,18 @@ function App() {
         <p>AI-powered job search</p>
         <div className="user-bar">
           <span>{user.email}</span>
-          <button className="logout-btn" onClick={handleLogout}>Logout</button>
+          <button className="logout-btn" onClick={handleLogout}>
+            Logout
+          </button>
         </div>
       </header>
 
       <main className="chat-container glass">
-        <MessageList messages={messages} loading={loading} onToggleSave={handleToggleSave} />
+        <MessageList
+          messages={messages}
+          loading={loading}
+          onToggleSave={handleToggleSave}
+        />
         <div ref={bottomRef} />
       </main>
 
