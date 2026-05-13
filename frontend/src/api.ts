@@ -210,3 +210,38 @@ export function getCurrentUser(): any | null {
   const user = localStorage.getItem("talentnode_user");
   return user ? JSON.parse(user) : null;
 }
+
+export async function getSavedJobs(): Promise<Job[]> {
+  const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+  const token = getToken();
+
+  if (!token) throw new Error("Please log in to view saved jobs");
+
+  const res = await fetch(`${API_URL}/api/saved-jobs`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Failed to fetch saved jobs: ${err}`);
+  }
+
+  return res.json();
+}
+
+export async function unsaveJob(id: string): Promise<void> {
+  const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+  const token = getToken();
+
+  if (!token) throw new Error("Please log in to unsave jobs");
+
+  const res = await fetch(`${API_URL}/api/saved-jobs/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Failed to unsave job: ${err}`);
+  }
+}
