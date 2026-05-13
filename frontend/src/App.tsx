@@ -10,7 +10,9 @@ import {
 import ChatInput from "./components/ChatInput";
 import MessageList from "./components/MessageList";
 import Login from "./components/Login";
+import SavedJobs from "./SavedJobs";
 import "./App.css";
+import { Briefcase, Menu } from "lucide-react";
 
 type MessageWithJobs = ChatMessage & { jobs?: Job[]; streaming?: boolean };
 
@@ -24,6 +26,8 @@ function App() {
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"chat" | "saved">("chat");
+  const [profileOpen, setProfileOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -145,30 +149,76 @@ function App() {
   return (
     <div className="app">
       <header className="app-header glass">
-        <h1>TalentNode</h1>
-        <p>AI-powered job search</p>
-        <div className="user-bar">
-          <span>{user.email}</span>
-          <button className="logout-btn" onClick={handleLogout}>
-            Logout
+        <div className="header-left">
+          <div className="logo-icon">
+            <Briefcase size={22} className="icon" />
+          </div>
+
+          <div>
+            <h1>TalentNode</h1>
+            <p>AI-powered job discovery</p>
+          </div>
+        </div>
+        <div className="profile-wrapper">
+          <button
+            className="profile-btn"
+            onClick={() => setProfileOpen(!profileOpen)}
+          >
+            <Menu size={20} className="icon" />
           </button>
+          {profileOpen && (
+            <div className="profile-dropdown">
+              <button
+                className="profile-item"
+                onClick={() => alert("Profile details not implemented")}
+              >
+                Profile Details
+              </button>
+              <button className="profile-item" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
+      <nav className="tab-nav glass">
+        <button
+          className={activeTab === "chat" ? "active" : ""}
+          onClick={() => setActiveTab("chat")}
+        >
+          Chat
+        </button>
+        <button
+          className={activeTab === "saved" ? "active" : ""}
+          onClick={() => setActiveTab("saved")}
+        >
+          Saved Jobs
+        </button>
+      </nav>
+
       <main className="chat-container glass">
-        <MessageList
-          messages={messages}
-          loading={loading}
-          onToggleSave={handleToggleSave}
-        />
-        <div ref={bottomRef} />
+        {activeTab === "chat" ? (
+          <>
+            <MessageList
+              messages={messages}
+              loading={loading}
+              onToggleSave={handleToggleSave}
+            />
+            <div ref={bottomRef} />
+          </>
+        ) : (
+          <SavedJobs />
+        )}
       </main>
 
       {error && <div className="error-bar">{error}</div>}
 
-      <footer className="chat-input-area">
-        <ChatInput onSend={handleSend} disabled={loading} />
-      </footer>
+      {activeTab === "chat" && (
+        <footer className="chat-input-area">
+          <ChatInput onSend={handleSend} disabled={loading} />
+        </footer>
+      )}
     </div>
   );
 }
